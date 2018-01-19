@@ -1,0 +1,84 @@
+* { box-sizing: border-box; }
+body {
+	font: 16px/1.2em sans-serif;
+	margin: 1rem;
+}
+h1, h2, h3, h4, h5, h6 {
+	font-family: 'Garamond', serif;
+	font-weight: normal;
+}
+code, kbd, pre, .editor {
+	font-size: 0.95em;
+	font-family: Menlo, Monaco, Consolas, "Courier New", monospace;
+	tab-size: 4;
+}
+pre {
+	background: #f3f3f3;
+	padding: 1rem;
+}
+a:link, a:visited, a:active {
+	color: #777;
+}
+.editor {
+	width: 100%;
+	resize: none;
+}
+textarea, input[type=text], input[type=password] {
+	font-size: 1rem;
+}
+button, input[type=submit] {
+	font-size: 1.2rem;
+}
+main {
+	max-width: 50rem;
+	margin: 0 auto 3rem;
+}
+article h1 {
+	font-size: 2rem;
+}
+article p {
+	line-height: 1.5;
+}
+@media screen and (min-width: 550px) {
+	.row {
+		width: 100%;
+		display: flex;
+		flex-direction: horizontal;
+		align-items: center;
+		justify-content: space-between;
+
+	}
+	.col {
+		flex-basis: auto;
+		flex-shrink: 0;
+	}
+}
+
+.flashes {
+	width: 100%;
+	position: fixed;
+	top: 0;
+	left: 0;
+	padding: 0 1rem;
+	pointer-events: none;
+}
+
+.flash {
+	width: 100%;
+	max-width: 30rem;
+	text-align: center;
+	color: #fff;
+	background: #000;
+	padding: 1rem;
+	margin: 1rem auto;
+	animation-name: flash-fade-out;
+	animation-duration: 5s;
+	animation-iteration-count: 1;
+	opacity: 0;
+}
+
+@keyframes flash-fade-out {
+    0% { opacity: 1; }
+    90% { opacity: 1; }
+    100%   { opacity: 0; }
+}

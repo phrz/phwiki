@@ -1,0 +1,40 @@
+{% set wiki_name = config['wiki_name'] if config['wiki_name'] != None else 'My Wiki' %}
+<!doctype html>
+<html lang="en">
+	<head>
+		<meta charset="utf-8">
+		<meta name="viewport" content="width=device-width,initial-scale=1.0">
+		<title>{% block title %}{{ wiki_name }}{% endblock %}</title>
+		<link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+		<link rel="stylesheet" href="{{ url_for('static', filename='highlight.css') }}">
+	</head>
+	<body>
+		<header class="row">
+			<div class="col">
+				<a href="{{ url_for('article', name='Home') }}">
+					<h2 class="wiki-title">{{ wiki_name }}</h2>
+				</a>
+			</div>
+			<div class="col">
+				{% if current_user.is_authenticated %}
+					Hello {{ current_user.id }}! <a href="{{ url_for('logout') }}">Log Out</a>
+				{% else %}
+					<em>Not logged in.</em> <a href="{{ url_for('login', redirect=request.path) }}">Log In</a>
+				{% endif %}
+			</div>
+		</header>
+		<main>
+			{% block body %}
+			{% endblock %}
+		</main>
+		{% with messages = get_flashed_messages() %}
+			{% if messages %}
+				<div class="flashes">
+					{% for message in messages %}
+						<div class="flash">{{ message }}</div>
+					{% endfor %}
+				</div>
+			{% endif %}
+		{% endwith %}
+	</body>
+</html>

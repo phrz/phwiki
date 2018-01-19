@@ -1,0 +1,14 @@
+{% extends "base.html" %}
+{% block title %}
+Editing "{{ article.name }}"
+{% endblock %}
+{% block body %}
+<article>
+	<h1>{{ article.name }} (Editing)</h1>
+	<p><a href="{{ url_for('article', name=article.name) }}">← Back to article</a></p>
+	<form action="{{ request.full_path }}" method="POST">
+		<p><textarea autofocus class="editor" rows="17" name="content" id="content">{{ article.content }}</textarea></p>
+		<p><input type="submit" name="submit" value="Save"></p>
+	</form>
+</article>
+{% endblock %}
