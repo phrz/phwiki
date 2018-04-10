@@ -7,22 +7,9 @@ from markdown.extensions.codehilite import CodeHiliteExtension
 
 from urllib.parse import urlparse, urljoin
 
-import sqlite3
+from peewee import *
 
-class sqlite3_connection:
-	def __init__(self, filename: str):
-		self.filename = filename
-		self.db_connection = None
-		self.db_cursor = None
 
-	def __enter__(self):
-		self.db_connection = sqlite3.connect('data/articles.db')
-		self.db_cursor = self.db_connection.cursor()
-		return self.db_cursor
-
-	def __exit__(self, type, value, traceback):
-		self.db_connection.commit()
-		self.db_connection.close()
 
 class User(flask_login.UserMixin):
 	pass
