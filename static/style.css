@@ -1,10 +1,15 @@
-* { box-sizing: border-box; }
+@font-face {
+	font-family: 'PHWiki-Garamond';
+	font-weight: 400;
+	src: url('EBGaramond-Regular.ttf');
+}
+* { box-sizing: border-box; -webkit-font-smoothing: antialiased; }
 body {
 	font: 16px/1.2em sans-serif;
 	margin: 1rem;
 }
 h1, h2, h3, h4, h5, h6 {
-	font-family: 'Garamond', serif;
+	font-family: 'PHWiki-Garamond', serif;
 	font-weight: normal;
 }
 code, kbd, pre, .editor {
@@ -40,6 +45,9 @@ article p {
 	line-height: 1.5;
 }
 @media screen and (min-width: 550px) {
+	body {
+		margin: 2rem 3rem;
+	}
 	.row {
 		width: 100%;
 		display: flex;
@@ -53,7 +61,6 @@ article p {
 		flex-shrink: 0;
 	}
 }
-
 .flashes {
 	width: 100%;
 	position: fixed;
@@ -62,7 +69,6 @@ article p {
 	padding: 0 1rem;
 	pointer-events: none;
 }
-
 .flash {
 	width: 100%;
 	max-width: 30rem;
@@ -76,9 +82,7 @@ article p {
 	animation-iteration-count: 1;
 	opacity: 0;
 }
-
 @keyframes flash-fade-out {
-    0% { opacity: 1; }
-    90% { opacity: 1; }
+    0%, 90% { opacity: 1; }
     100%   { opacity: 0; }
 }
