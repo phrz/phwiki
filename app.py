@@ -9,8 +9,14 @@ from urllib.parse import urlparse, urljoin
 
 from peewee import *
 
+import hashlib
+from hmac import compare_digest
+
 db = SqliteDatabase('db.sqlite3')
 current_timestamp = [SQL('DEFAULT CURRENT_TIMESTAMP')]		
+
+def hash_password(password: str) -> str:
+	return hashlib.sha512(password.encode()).hexdigest()
 
 # begin models
 
@@ -38,7 +44,7 @@ class User(Model):
 	@property
 	def is_active(self) -> bool:
 		# user has activated, is not suspended, etc.
-		return can_login
+		return self.can_login
 
 	@property
 	def is_anonymous(self) -> bool:
@@ -46,9 +52,9 @@ class User(Model):
 		return False
 
 	# method, not a property
-	def get_id() -> str:
+	def get_id(self) -> str:
 		# returns a `unique` identifier for the user
-		return name
+		return self.username
 
 class Article(Model):
 	title = CharField()
@@ -57,14 +63,6 @@ class Article(Model):
 	created = DateTimeField(constraints=current_timestamp)
 	class Meta:
 		database = db
-
-	@property
-	def content(self):
-		'''a shortcut that gets the content from the latest revision'''
-		if self.current_revision is not None:
-			return self.current_revision.content
-		else:
-			return 'No revision'
 
 class ArticleRevision(Model):
 	author = ForeignKeyField(User, backref='contributed_revisions')
@@ -124,14 +122,15 @@ def _setup():
 			# Model.create saves the model immediately, so we create an article
 			# with no revisions and then add one later.
 			home_article = Article.create(title='Home')
-			revision = ArticleRevision(
+
+			revision = ArticleRevision.create(
 				article=home_article, 
 				content='New home page. Log in and click Edit to populate it!',
 				author=user
 			)
+
 			home_article.current_revision = revision
 			home_article.save()
-			revision.save()
 
 
 
@@ -152,28 +151,12 @@ Flask-Login: return a Flask-Login-compatible User model
 given a request object (form data), and additionally
 mark the user as authenticated (`is_authenticated: bool`)
 if authentication succeeds. 
-[important] Return None if the user either does not exist,
-or 
+
+we don't need this, we're not doing Token auth.
 '''
 @login_manager.request_loader
 def request_loader(request):
-	given_username = request.form.get('username')
-	given_password = request.form.get('password')
-
-	with db:
-		try:
-			user = User.get(User.username == given_username)
-		except User.DoesNotExist:
-			return None
-
-	if not user.can_login:
-		return None
-
-	# DO NOT ever store passwords in plaintext and always compare password
-	# hashes using constant-time comparison!
-	user.is_authenticated = request.form['password'] == users[username]['password']
-
-	return user
+	return None
 
 @login_manager.unauthorized_handler
 def unauthorized_handler():
@@ -186,29 +169,62 @@ def home():
 
 @app.route('/login', methods=['GET', 'POST'])
 def login():
+	# reusable failure condition
+	def login_fail():
+		flask.flash('Please try a different username or password.')
+		return flask.redirect(flask.request.full_path)
+
+	# show the login page unless a login form was submitted.
 	if flask.request.method == 'GET':
 		return flask.render_template('login.html')
 
-	username = flask.request.form['username']
-	if username in users and flask.request.form['password'] == users[username]['password']:
-		user = User()
-		user.id = username
-		should_remember_me = 'yes' in flask.request.form.getlist('remember_me')
-		flask.flash('You are now logged in 👌')
-		print(f'Logging in {user} (remember me = {should_remember_me})')
-		flask_login.login_user(user, remember=should_remember_me)
+	given_username = flask.request.form.get('username')
+	given_password = flask.request.form.get('password')
 
-		redirect_url = flask.request.args.get('redirect')
-		if not is_safe_url(redirect_url):
-			return flask.abort(400)
-		return flask.redirect(redirect_url)
+	# check that the user exists
+	with db:
+		try:
+			user = User.get(User.username == given_username)
+		except User.DoesNotExist:
+			return login_fail()
 
-	flask.flash('Please try a different username or password.')
-	return flask.redirect(flask.request.full_path)
+	# check that the user is flagged as being able to login
+	# (not an artificial user like `site`)
+	if not user.can_login:
+		return login_fail()
+
+	# check the password
+	given_password_hash = hash_password(given_password)
+	print(given_password_hash)
+	# constant time comparison
+	if not compare_digest(user.password_hash, given_password_hash):
+		return login_fail()
+
+	# Remember Me is a checkbox in the form.
+	# Checkboxes are part of options sets:
+	# the list is named "remember_me", and the checkbox is named "yes".
+	# So to see if its checked, we have to determine set membership.
+	should_remember_me = 'yes' in flask.request.form.getlist('remember_me')
+
+	flask.flash('You are now logged in 👌')
+
+	print(f'Logging in {user} (remember me = {should_remember_me})')
+
+	# manually set `is_authenticated` property on *this instance* of User
+	# (unrelated to DB model) - this tells Flask-Login it's all good
+	user.is_authenticated = True
+	flask_login.login_user(user, remember=should_remember_me)
+
+	redirect_url = flask.request.args.get('redirect')
+
+	if not is_safe_url(redirect_url):
+		return flask.abort(400)
+
+	return flask.redirect(redirect_url)
 
 @app.route('/logout')
 def logout():
-	print(f'Logging out user {flask_login.current_user.id}')
+	print(f'Logging out user { flask_login.current_user.get_id() }')
 	flask_login.logout_user()
 	flask.flash('Logged out.')
 	return flask.redirect(flask.url_for('article', name='Home'))

@@ -38,7 +38,11 @@ main {
 	max-width: 50rem;
 	margin: 0 auto 3rem;
 }
-article h1 {
+.article-meta {
+	opacity: 0.6;
+	font-style: italic;
+}
+h1, article h1 {
 	font-size: 2rem;
 }
 article p {
@@ -78,11 +82,12 @@ article p {
 	padding: 1rem;
 	margin: 1rem auto;
 	animation-name: flash-fade-out;
-	animation-duration: 5s;
+	animation-duration: 4s;
 	animation-iteration-count: 1;
+	animation-timing-function: ease-in-out;
 	opacity: 0;
 }
 @keyframes flash-fade-out {
-    0%, 90% { opacity: 1; }
-    100%   { opacity: 0; }
+    0%, 90% { opacity: 1; transform: translateY(0); }
+    100%   { opacity: 0; transform: translateY(-10rem); }
 }

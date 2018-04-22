@@ -18,7 +18,7 @@
 			</div>
 			<div class="col">
 				{% if current_user.is_authenticated %}
-					Hello {{ current_user.id }}! <a href="{{ url_for('logout') }}">Log Out</a>
+					Hello {{ current_user.get_id() }}! <a href="{{ url_for('logout') }}">Log Out</a>
 				{% else %}
 					<em>Not logged in.</em> <a href="{{ url_for('login', redirect=request.path) }}">Log In</a>
 				{% endif %}
